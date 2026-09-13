@@ -1,0 +1,218 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Story | StoryVerse</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#7c3aed",
+                        darkbg: "#0f172a"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-950 text-white min-h-screen">
+
+    <!-- Navbar -->
+
+    <nav class="border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+
+            <a href="{% url 'home' %}"
+               class="text-2xl font-bold text-purple-400">
+                StoryVerse
+            </a>
+
+            <div class="flex items-center gap-4">
+
+                <span class="text-slate-400">
+                    Hi, {{ request.user.username }}
+                </span>
+
+                <a href="{% url 'logout' %}"
+                   class="text-red-400 hover:text-red-300">
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+    </nav>
+
+
+    <!-- Form -->
+
+    <main class="max-w-3xl mx-auto px-6 py-12">
+
+        <div class="mb-10">
+
+            <h1 class="text-4xl font-bold mb-3">
+                Create Your Story
+            </h1>
+
+            <p class="text-slate-400">
+                Write your story and share it with the StoryVerse community.
+            </p>
+
+        </div>
+
+
+        <form method="POST"
+              class="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
+
+            {% csrf_token %}
+
+
+            <!-- Title -->
+
+            <div>
+
+                <label class="block mb-2 font-medium">
+                    Story Title
+                </label>
+
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="Enter story title"
+                    required
+                    class="w-full px-4 py-3 rounded-lg
+                           bg-slate-800 border border-slate-700
+                           focus:outline-none focus:border-purple-500"
+                >
+
+            </div>
+
+
+            <!-- Content -->
+
+            <div>
+
+                <label class="block mb-2 font-medium">
+                    Story
+                </label>
+
+                <textarea
+                    name="content"
+                    rows="12"
+                    placeholder="Write your story here..."
+                    required
+                    class="w-full px-4 py-3 rounded-lg
+                           bg-slate-800 border border-slate-700
+                           focus:outline-none focus:border-purple-500"
+                ></textarea>
+
+            </div>
+
+
+            <!-- Language -->
+
+            <div>
+
+                <label class="block mb-2 font-medium">
+                    Language
+                </label>
+
+                <select
+                    name="language"
+                    required
+                    class="w-full px-4 py-3 rounded-lg
+                           bg-slate-800 border border-slate-700">
+
+                    <option value="">Select Language</option>
+
+                    <option value="en">
+                        English
+                    </option>
+
+                    <option value="hi">
+                        Hindi
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Genre -->
+
+            <div>
+
+                <label class="block mb-2 font-medium">
+                    Genre
+                </label>
+
+                <select
+                    name="genre"
+                    required
+                    class="w-full px-4 py-3 rounded-lg
+                           bg-slate-800 border border-slate-700">
+
+                    <option value="">Select Genre</option>
+
+                    <option value="Horror">
+                        Horror
+                    </option>
+
+                    <option value="Romance">
+                        Romance
+                    </option>
+
+                    <option value="Mystery">
+                        Mystery
+                    </option>
+
+                    <option value="Motivation">
+                        Motivation
+                    </option>
+
+                    <option value="Adventure">
+                        Adventure
+                    </option>
+
+                    <option value="Devotional">
+                        Devotional
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Submit -->
+
+            <button
+                type="submit"
+                class="w-full py-3 rounded-lg
+                       bg-purple-600 hover:bg-purple-700
+                       font-semibold transition">
+
+                Publish Story
+
+            </button>
+
+        </form>
+
+    </main>
+
+</body>
+
+</html>
