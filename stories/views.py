@@ -1,19 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-
-from gtts import gTTS
-
-from .models import Story
-
-
-
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
-from gtts import gTTS
+import requests
 import cloudinary
 import cloudinary.uploader
 
@@ -31,6 +20,50 @@ def home_view(request):
         "home.html",
         {"stories": stories}
     )
+
+
+# Real voice IDs confirmed available on your ElevenLabs account.
+GENRE_VOICE_MAP = {
+    "horror": "N2lVS1w4EtoT3dr4eOWO",     # Callum - gravelly, unsettling
+    "romance": "EXAVITQu4vr4xnSDxMaL",    # Sarah - warm, reassuring
+    "comedy": "cgSgspJ2msm6clMCkdW9",     # Jessica - playful, bright
+    "adventure": "SOYHLrjzK2X1ezoPC6cr",  # Harry - fierce warrior energy
+    "default": "JBFqnCBsd6RMkjVDRZzb",    # George - warm storyteller
+}
+
+
+def pick_voice_id_for_genre(genre):
+    """Pick a voice_id for the given genre, falling back to the default narrator voice."""
+    return GENRE_VOICE_MAP.get(genre.lower(), GENRE_VOICE_MAP["default"])
+
+
+def generate_elevenlabs_audio(text, genre, output_path):
+    """Generate narration audio using ElevenLabs TTS and save it to output_path."""
+
+    voice_id = pick_voice_id_for_genre(genre)
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
+    headers = {
+        "xi-api-key": settings.ELEVENLABS_API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "text": text,
+        # eleven_multilingual_v2 is best for longer-form narration quality.
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": 0.5,
+            "similarity_boost": 0.75,
+        },
+    }
+
+    response = requests.post(url, json=payload, headers=headers, timeout=60)
+    response.raise_for_status()
+
+    with open(output_path, "wb") as f:
+        f.write(response.content)
 
 
 @login_required
@@ -70,13 +103,12 @@ def create_story_view(request):
 
         try:
 
-            # Generate audio using gTTS
-            tts = gTTS(
+            # Generate audio using ElevenLabs (much more natural narration than gTTS)
+            generate_elevenlabs_audio(
                 text=content,
-                lang=language
+                genre=genre,
+                output_path=temp_path
             )
-
-            tts.save(temp_path)
 
             # Upload MP3 to Cloudinary
             result = cloudinary.uploader.upload(

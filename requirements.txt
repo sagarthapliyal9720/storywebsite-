@@ -8,3 +8,5 @@ gTTS==2.5.4
 psycopg==3.3.5
 psycopg-binary==3.3.5
 gunicorn==22.0.0
+elevenlabs==2.68.0
+requests==2.34.2
