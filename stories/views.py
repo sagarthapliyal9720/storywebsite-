@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-
+from django.core.paginator import Paginator
 import requests
 import cloudinary
 import cloudinary.uploader
@@ -9,18 +9,39 @@ import cloudinary.uploader
 import os
 import tempfile
 
-from .models import Story
+from .models import Story,Bookmark,Like
 
+
+from django.db.models import Count
 
 def home_view(request):
     stories = Story.objects.all().order_by("-created_at")
 
-    return render(
-        request,
-        "home.html",
-        {"stories": stories}
-    )
+    recommended = None
 
+    if request.user.is_authenticated:
+        for story in stories:
+            story.is_liked = Like.objects.filter(user=request.user, story=story).exists()
+            story.is_book = Bookmark.objects.filter(user=request.user, story=story).exists()
+
+        # user ne jo genres like kiye hain unki list
+        liked_genres = Like.objects.filter(user=request.user).values_list('story__genre', flat=True).distinct()
+
+        if liked_genres:
+            recommended = Story.objects.filter(genre__in=liked_genres).exclude(likes__user=request.user).order_by('-created_at')[:3]
+        else:
+            # naya user - trending dikhao
+            recommended = Story.objects.annotate(like_count=Count('likes')).order_by('-like_count')[:5]
+    else:
+        for story in stories:
+            story.is_liked = False
+            story.is_book = False
+
+    paginator=Paginator(stories,6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "home.html", {"page_obj": page_obj, "recommended": recommended})
 
 # Real voice IDs confirmed available on your ElevenLabs account.
 GENRE_VOICE_MAP = {
@@ -133,3 +154,51 @@ def create_story_view(request):
         request,
         "create_story.html"
     )
+
+@login_required
+def toggle_like_view(request, story_id):
+    story = Story.objects.get(id=story_id)
+    # like, created = Like.objects.get_or_create(user=request.user, story=story)
+    user=request.user
+
+    l=Like.objects.filter(user=user,story=story)
+    if l.exists():
+        l.delete()
+        print("like deletd ")
+
+    else:
+        like=Like.objects.create(
+                user=user,
+                story=story
+            )
+        print(like)
+        like.save()
+
+        redirect('home')
+
+
+    
+
+    return redirect("home")
+
+
+@login_required
+def toggle_bookmark_view(request, story_id):
+    story = Story.objects.get(id=story_id)
+    if request.user:
+        bookmark=Bookmark.objects.filter(story=story,user=request.user)
+        if bookmark:
+            bookmark.delete()
+            print("bookmark dleted successfully ")
+        else:
+            book=Bookmark.objects.create(
+                user=request.user,
+                story=story
+            )
+            print(f"book marked suuccefully{book}")    
+            book.save()
+
+
+    return redirect("home")
+
+
