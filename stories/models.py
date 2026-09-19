@@ -9,6 +9,17 @@ class Story(models.Model):
         on_delete=models.CASCADE,
         related_name="stories"
     )
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('ready', 'Ready'),
+        ('failed', 'Failed'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
 
     title = models.CharField(max_length=200)
 
